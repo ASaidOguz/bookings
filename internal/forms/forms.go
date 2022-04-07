@@ -10,6 +10,11 @@ type Form struct {
 	Errors errors
 }
 
+// Valid returns true if there r no errors ,otherwise false
+func (f *Form) Valid() bool {
+	return len(f.Errors) == 0
+}
+
 //New initialize a form struct
 func New(data url.Values) *Form {
 	return &Form{
@@ -24,6 +29,7 @@ func (f *Form) Has(field string, r *http.Request) bool {
 
 	x := r.Form.Get(field)
 	if x == "" {
+		f.Errors.Add(field, "This field cant be blank")
 		return false
 	}
 	return true
