@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/ASaidOguz/bookings/internal/config"
+	"github.com/ASaidOguz/bookings/internal/forms"
 	"github.com/ASaidOguz/bookings/internal/models"
 	"github.com/ASaidOguz/bookings/internal/render"
 )
@@ -107,6 +108,8 @@ func (m *Repository) Majors(w http.ResponseWriter, r *http.Request) {
 
 	render.RenderTemplate(w, r, "majors.page.html", &models.TemplateData{})
 }
+
+// Contact is the contact page handler
 func (m *Repository) Contact(w http.ResponseWriter, r *http.Request) {
 	remoteIp := r.RemoteAddr
 	m.App.Session.Put(r.Context(), "remote_ip", remoteIp)
@@ -119,5 +122,14 @@ func (m *Repository) Reservation(w http.ResponseWriter, r *http.Request) {
 	remoteIp := r.RemoteAddr
 	m.App.Session.Put(r.Context(), "remote_ip", remoteIp)
 
-	render.RenderTemplate(w, r, "make-reservation.page.html", &models.TemplateData{})
+	render.RenderTemplate(w, r, "make-reservation.page.html", &models.TemplateData{
+		Form: forms.New(nil),
+	})
+}
+
+//PostReservation handles the posting of reservation form
+func (m *Repository) PostReservation(w http.ResponseWriter, r *http.Request) {
+	remoteIp := r.RemoteAddr
+	m.App.Session.Put(r.Context(), "remote_ip", remoteIp)
+
 }
