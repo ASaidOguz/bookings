@@ -15,6 +15,7 @@ import (
 
 var functions = template.FuncMap{}
 var app *config.AppConfig
+var pathtoTemplates = "./templates"
 
 func NewTemplate(a *config.AppConfig) {
 	app = a
@@ -60,7 +61,7 @@ func CreateTemplateCache() (map[string]*template.Template, error) {
 
 	myCache := map[string]*template.Template{}
 
-	pages, err := filepath.Glob("./templates/*.page.html")
+	pages, err := filepath.Glob(fmt.Sprintf("%s/*.page.html", pathtoTemplates))
 	if err != nil {
 		return myCache, err
 	}
@@ -72,13 +73,13 @@ func CreateTemplateCache() (map[string]*template.Template, error) {
 			return myCache, err
 		}
 
-		matches, err := filepath.Glob("./templates/*.layout.html")
+		matches, err := filepath.Glob(fmt.Sprintf("%s/*.layout.html", pathtoTemplates))
 		if err != nil {
 			return myCache, err
 		}
 
 		if len(matches) > 0 {
-			ts, err = ts.ParseGlob("./templates/*.layout.html")
+			ts, err = ts.ParseGlob(fmt.Sprintf("%s/*.layout.html", pathtoTemplates))
 			if err != nil {
 				return myCache, err
 			}
