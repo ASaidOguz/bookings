@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/gob"
 	"fmt"
 	"log"
 	"net/http"
@@ -8,6 +9,7 @@ import (
 
 	"github.com/ASaidOguz/bookings/internal/config"
 	"github.com/ASaidOguz/bookings/internal/handlers"
+	"github.com/ASaidOguz/bookings/internal/models"
 	"github.com/ASaidOguz/bookings/internal/render"
 
 	"github.com/alexedwards/scs/v2"
@@ -21,8 +23,30 @@ var session *scs.SessionManager
 
 func main() {
 
-	// change this to true when in production
+	err := run()
+	if err != nil {
+		log.Fatal(err)
+	}
 
+	// Handlers.Repo because home function has receiver of repository
+	//http.HandleFunc("/", handlers.Repo.Home)
+	//http.HandleFunc("/about", handlers.Repo.About)
+
+	fmt.Println(fmt.Sprintf("Starting application on port %s", portNumber))
+	//_ = http.ListenAndServe(portNumber, nil)
+	srv := &http.Server{
+		Addr:    portNumber,
+		Handler: routes(&app),
+	}
+	err = srv.ListenAndServe()
+	log.Fatal(err)
+}
+
+func run() error {
+	//what am i going to put in session
+	gob.Register(models.Reservation{})
+
+	// app.InProduction change this to true when in production
 	app.InProduction = false
 	// if the session below has ":"
 	//the fault of variable shadowing would occur !!!
@@ -36,6 +60,7 @@ func main() {
 	tc, err := render.CreateTemplateCache()
 	if err != nil {
 		log.Fatal("cannot create template cache")
+		return err
 	}
 
 	app.TemplateCache = tc
@@ -45,16 +70,6 @@ func main() {
 	repo := handlers.NewRepo(&app)
 	handlers.NewHandlers(repo)
 	render.NewTemplate(&app)
-	// Handlers.Repo because home function has receiver of repository
-	//http.HandleFunc("/", handlers.Repo.Home)
-	//http.HandleFunc("/about", handlers.Repo.About)
 
-	fmt.Println(fmt.Sprintf("Starting application on port %s", portNumber))
-	//_ = http.ListenAndServe(portNumber, nil)
-	srv := &http.Server{
-		Addr:    portNumber,
-		Handler: routes(&app),
-	}
-	err = srv.ListenAndServe()
-	log.Fatal(err)
+	return nil
 }
