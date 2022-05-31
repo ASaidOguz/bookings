@@ -5,10 +5,12 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/ASaidOguz/bookings/internal/config"
 	"github.com/ASaidOguz/bookings/internal/handlers"
+	"github.com/ASaidOguz/bookings/internal/helpers"
 	"github.com/ASaidOguz/bookings/internal/models"
 	"github.com/ASaidOguz/bookings/internal/render"
 
@@ -20,6 +22,10 @@ var app config.AppConfig
 const portNumber = ":8080"
 
 var session *scs.SessionManager
+
+var infoLog *log.Logger
+
+var errorLog *log.Logger
 
 func main() {
 
@@ -45,6 +51,12 @@ func main() {
 func run() error {
 	//what am i going to put in session
 	gob.Register(models.Reservation{})
+	//infolog and error log can be print out in terminal
+	infoLog = log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
+	app.InfoLog = infoLog
+
+	errorLog = log.New(os.Stdout, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
+	app.ErrorLog = errorLog
 
 	// app.InProduction change this to true when in production
 	app.InProduction = false
@@ -70,6 +82,6 @@ func run() error {
 	repo := handlers.NewRepo(&app)
 	handlers.NewHandlers(repo)
 	render.NewTemplate(&app)
-
+	helpers.NewHelpers(&app)
 	return nil
 }
