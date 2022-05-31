@@ -3,11 +3,12 @@ package handlers
 import (
 	"encoding/json"
 	"fmt"
-	"log"
+
 	"net/http"
 
 	"github.com/ASaidOguz/bookings/internal/config"
 	"github.com/ASaidOguz/bookings/internal/forms"
+	"github.com/ASaidOguz/bookings/internal/helpers"
 	"github.com/ASaidOguz/bookings/internal/models"
 	"github.com/ASaidOguz/bookings/internal/render"
 )
@@ -86,7 +87,8 @@ func (m *Repository) AvailabilityJSON(w http.ResponseWriter, r *http.Request) {
 	}
 	out, err := json.MarshalIndent(resp, "", "     ")
 	if err != nil {
-		log.Println(err)
+		helpers.ServerError(w, err)
+		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -138,7 +140,7 @@ func (m *Repository) PostReservation(w http.ResponseWriter, r *http.Request) {
 	m.App.Session.Put(r.Context(), "remote_ip", remoteIp)
 	err := r.ParseForm()
 	if err != nil {
-		log.Println(err)
+		helpers.ServerError(w, err)
 		return
 	}
 
@@ -172,7 +174,7 @@ func (m *Repository) ReservationSummary(w http.ResponseWriter, r *http.Request) 
 
 	reservation, ok := m.App.Session.Get(r.Context(), "reservation").(models.Reservation)
 	if !ok {
-		log.Println("we cant get the data")
+		m.App.ErrorLog.Println("Cant get error from session ")
 		m.App.Session.Put(r.Context(), "error", "Cant get reservation from session ")
 		http.Redirect(w, r, "/", http.StatusTemporaryRedirect)
 		return
