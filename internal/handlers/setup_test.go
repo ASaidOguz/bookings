@@ -53,7 +53,7 @@ func getRoots() http.Handler {
 
 	repo := NewRepo(&app)
 	NewHandlers(repo)
-	render.NewTemplate(&app)
+	render.Template(&app)
 	mux := chi.NewRouter()
 	mux.Use(middleware.Recoverer)
 	mux.Use(WriteToConsole)

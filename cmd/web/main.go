@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/ASaidOguz/bookings/internal/config"
+	"github.com/ASaidOguz/bookings/internal/driver"
 	"github.com/ASaidOguz/bookings/internal/handlers"
 	"github.com/ASaidOguz/bookings/internal/helpers"
 	"github.com/ASaidOguz/bookings/internal/models"
@@ -29,11 +30,12 @@ var errorLog *log.Logger
 
 func main() {
 
-	err := run()
+	db, err := run()
 	if err != nil {
 		log.Fatal(err)
 	}
-
+	// When the main function stops db will be closed thanks to defer function we implemented
+	defer db.SQL.Close()
 	// Handlers.Repo because home function has receiver of repository
 	//http.HandleFunc("/", handlers.Repo.Home)
 	//http.HandleFunc("/about", handlers.Repo.About)
@@ -48,9 +50,13 @@ func main() {
 	log.Fatal(err)
 }
 
-func run() error {
+func run() (*driver.DB, error) {
 	//what am i going to put in session
 	gob.Register(models.Reservation{})
+	gob.Register(models.User{})
+	gob.Register(models.Room{})
+	gob.Register(models.Restriction{})
+
 	//infolog and error log can be print out in terminal
 	infoLog = log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
 	app.InfoLog = infoLog
@@ -69,19 +75,27 @@ func run() error {
 	session.Cookie.Secure = false
 
 	app.Session = session
+	// Connecting to database
+
+	log.Println("Connecting to database ....")
+	db, err := driver.ConnectSQL("host=localhost port=5432 dbname=bookings user=postgres password=2061040215")
+	if err != nil {
+		log.Fatal("Cannot connect to database Dying ...")
+	}
+	log.Println("Connected to Database...")
 	tc, err := render.CreateTemplateCache()
 	if err != nil {
 		log.Fatal("cannot create template cache")
-		return err
+		return nil, err
 	}
 
 	app.TemplateCache = tc
 	// development mode element
 	//app.UseCache = false
 
-	repo := handlers.NewRepo(&app)
+	repo := handlers.NewRepo(&app, db)
 	handlers.NewHandlers(repo)
-	render.NewTemplate(&app)
+	render.NewRenderer(&app)
 	helpers.NewHelpers(&app)
-	return nil
+	return db, nil
 }
